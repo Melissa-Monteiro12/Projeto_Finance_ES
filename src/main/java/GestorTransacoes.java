@@ -49,4 +49,10 @@ public class GestorTransacoes {
             }
         }
     }
+
+    // Luis
+    public void removerTransacao(Transacao transacao) {
+        transacoes.remove(transacao);
+        guardarNoFicheiro();
+    }
 }

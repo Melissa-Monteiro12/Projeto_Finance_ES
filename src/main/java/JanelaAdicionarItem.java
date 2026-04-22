@@ -1,8 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
-import java.sql.Date;
+import java.security.spec.ECField;
+//import java.sql.Date; BUG REAL - Luis
 import java.util.ArrayList;
 import java.util.List;
+// Luis
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class JanelaAdicionarItem extends JPanel {
     private JanelaInicial frame;
@@ -88,11 +92,33 @@ public class JanelaAdicionarItem extends JPanel {
             return;
         }
 
-        double valor = Double.parseDouble(valorString);
+        /*double valor = Double.parseDouble(valorString);
         Date data;
         try {
             data = Date.valueOf(dataString);
         } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Data inválida. Usa o formato yyyy-MM-dd.");
+            return;
+        }*/
+
+        // Luís - ALTERAÇÃO
+        // Input Valor
+        double valor;
+        try {
+            valor = Double.parseDouble(valorString);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Valor inválido");
+            return;
+        }
+
+        // Input Data
+        SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd");
+        formato.setLenient(false);
+
+        Date data;
+        try {
+            data = formato.parse(dataString);
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Data inválida. Usa o formato yyyy-MM-dd.");
             return;
         }
