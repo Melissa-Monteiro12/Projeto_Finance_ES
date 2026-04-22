@@ -29,7 +29,7 @@ public class JanelaCronologia extends JPanel {
 
         atualizarCronologia();
 
-        visaoGeralButton.addActionListener(e -> frame.mostrarEcra("visaoGeral"));
+        visaoGeralButton.addActionListener(e -> frame.abrirVisaoGeral());
         adicionarItemButton.addActionListener(e -> frame.mostrarEcra("adicionarItem"));
     }
 
@@ -61,8 +61,6 @@ public class JanelaCronologia extends JPanel {
         JPanel item = new JPanel(new BorderLayout(10,0));
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
 
-        //JLabel data = new JLabel(String.valueOf(transacao.getData())); Melissa
-        // Luis - alteração, qualquer coisa é alterar o formato
         SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd");
         JLabel data = new JLabel(formato.format(transacao.getData()));
 
@@ -96,15 +94,6 @@ public class JanelaCronologia extends JPanel {
         MouseAdapter clique = new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Mostrar POPUP com a info do item clicado
-                /*JOptionPane.showMessageDialog(
-                        JanelaCronologia.this,
-                        "Tipo: " + transacao.getTipo() +
-                                "\nCategoria: " + transacao.getCategoria().getNome() +
-                                "\nValor: " + transacao.getValor() +
-                                "\nData: " + transacao.getData() +
-                                "\nDescrição: " + transacao.getDescricao()
-                );*/
                 Object[] opcoes = {"Editar", "Apagar", "Cancelar"};
 
                 int escolha = JOptionPane.showOptionDialog(
@@ -147,43 +136,130 @@ public class JanelaCronologia extends JPanel {
 
     }
 
-    // Luis
+
     private void editarTransacao(Transacao transacao) {
-        // Usar SimpleDateFormat para o formato de data
         SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd");
         formato.setLenient(false);
 
-        String novaValorTexto = JOptionPane.showInputDialog(
-                this,
-                "Novo valor:",
-                transacao.getValor()
-        );
-        if (novaValorTexto == null) return;
+        JTextField valorField = new JTextField(String.valueOf(transacao.getValor()));
+        JTextField dataField = new JTextField(formato.format(transacao.getData()));
+        JTextField descricaoField = new JTextField(transacao.getDescricao());
 
-        String novaDataTexto = JOptionPane.showInputDialog(
-                this,
-                "Nova data (yyyy-MM-dd):",
-                formato.format(transacao.getData())
-        );
-        if (novaDataTexto == null) return;
+        JRadioButton despesaRadio = new JRadioButton("Despesa");
+        JRadioButton receitaRadio = new JRadioButton("Receita");
+        ButtonGroup grupoTipo = new ButtonGroup();
+        grupoTipo.add(despesaRadio);
+        grupoTipo.add(receitaRadio);
 
-        String novaDescricao = JOptionPane.showInputDialog(
-                this,
-                "Nova descricao:",
-                transacao.getDescricao()
-        );
-        // Não é necessario validacao, pois é opcional
-
-        try {
-            Double novoValor = Double.parseDouble(novaValorTexto);
-            Date novaData    = formato.parse(novaDataTexto);
-
-            transacao.atualizar(novoValor, novaDescricao, novaData);
-            frame.getGestorTransacoes().guardarNoFicheiro();
-            atualizarCronologia();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Valor ou data inválidos", JOptionPane.ERROR_MESSAGE);
+        if (transacao.getTipo() == Tipo.DESPESA) {
+            despesaRadio.setSelected(true);
+        } else {
+            receitaRadio.setSelected(true);
         }
+
+        JComboBox<Categoria> categoriaComboBox = new JComboBox<>();
+
+        Runnable atualizarCategorias = () -> {
+            categoriaComboBox.removeAllItems();
+
+            Tipo tipoSelecionado = despesaRadio.isSelected() ? Tipo.DESPESA : Tipo.RECEITA;
+
+            for (Categoria categoria : Categoria.values()) {
+                if (categoria.getTipo() == tipoSelecionado) {
+                    categoriaComboBox.addItem(categoria);
+                }
+            }
+
+            if (transacao.getCategoria().getTipo() == tipoSelecionado) {
+                categoriaComboBox.setSelectedItem(transacao.getCategoria());
+            } else if (categoriaComboBox.getItemCount() > 0) {
+                categoriaComboBox.setSelectedIndex(0);
+            }
+        };
+
+        despesaRadio.addActionListener(e -> atualizarCategorias.run());
+        receitaRadio.addActionListener(e -> atualizarCategorias.run());
+
+        atualizarCategorias.run();
+
+        JPanel tipoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        tipoPanel.add(despesaRadio);
+        tipoPanel.add(receitaRadio);
+
+        JPanel painel = new JPanel(new GridLayout(0, 1, 5, 5));
+        painel.add(new JLabel("Tipo:"));
+        painel.add(tipoPanel);
+        painel.add(new JLabel("Categoria:"));
+        painel.add(categoriaComboBox);
+        painel.add(new JLabel("Valor:"));
+        painel.add(valorField);
+        painel.add(new JLabel("Data (yyyy-MM-dd):"));
+        painel.add(dataField);
+        painel.add(new JLabel("Descrição:"));
+        painel.add(descricaoField);
+
+        int resultado = JOptionPane.showConfirmDialog(
+                this,
+                painel,
+                "Editar transação",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (resultado != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        String novoValorTexto = valorField.getText().trim();
+        String novaDataTexto = dataField.getText().trim();
+        String novaDescricao = descricaoField.getText().trim();
+
+        Tipo novoTipo = despesaRadio.isSelected() ? Tipo.DESPESA : Tipo.RECEITA;
+        Categoria novaCategoria = (Categoria) categoriaComboBox.getSelectedItem();
+
+        if (novoValorTexto.isEmpty() || novaDataTexto.isEmpty() || novaCategoria == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Preencha os campos Categoria, Valor e Data.",
+                    "Campos em falta",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        double novoValor;
+        try {
+            novoValor = Double.parseDouble(novoValorTexto);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Valor inválido.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+        if (novoValor <= 0) {
+            JOptionPane.showMessageDialog(this, "O valor tem de ser positivo e numérico.");
+            return;
+        }
+
+        Date novaData;
+        try {
+            novaData = formato.parse(novaDataTexto);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Data inválida. Usa o formato yyyy-MM-dd.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        transacao.atualizar(novoTipo, novaCategoria, novoValor, novaDescricao, novaData);
+        frame.getGestorTransacoes().guardarNoFicheiro();
+        atualizarCronologia();
     }
 
 }

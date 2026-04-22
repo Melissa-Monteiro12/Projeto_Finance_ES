@@ -92,22 +92,15 @@ public class JanelaAdicionarItem extends JPanel {
             return;
         }
 
-        /*double valor = Double.parseDouble(valorString);
-        Date data;
-        try {
-            data = Date.valueOf(dataString);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, "Data inválida. Usa o formato yyyy-MM-dd.");
-            return;
-        }*/
-
-        // Luís - ALTERAÇÃO
-        // Input Valor
         double valor;
         try {
-            valor = Double.parseDouble(valorString);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Valor inválido");
+            valor = Double.parseDouble(valorString.replace(",", "."));
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Valor inválido. Introdza um numero");
+            return;
+        }
+        if (valor <= 0) {
+            JOptionPane.showMessageDialog(this, "O valor tem de ser positivo e numérico.");
             return;
         }
 
@@ -119,7 +112,7 @@ public class JanelaAdicionarItem extends JPanel {
         try {
             data = formato.parse(dataString);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Data inválida. Usa o formato yyyy-MM-dd.");
+            JOptionPane.showMessageDialog(this, "Data inválida. Use o formato yyyy-MM-dd.");
             return;
         }
 

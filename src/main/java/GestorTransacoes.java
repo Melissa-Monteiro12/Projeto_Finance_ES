@@ -7,14 +7,30 @@ import java.util.logging.Logger;
 public class GestorTransacoes {
     private List<Transacao> transacoes;
 
+    private boolean guardarEmFicheiro;
+
+
     public GestorTransacoes() {
-        transacoes = new ArrayList<>();
+        this(true);
+    }
+
+    public GestorTransacoes(boolean guardarEmFicheiro) {
+        this.transacoes = new ArrayList<>();
+        this.guardarEmFicheiro = guardarEmFicheiro;
     }
 
     public void adicionarTransacao(Transacao transacao) {
         transacoes.add(transacao);
-        guardarNoFicheiro();
+        if (guardarEmFicheiro) {
+            guardarNoFicheiro();
+        }
+    }
 
+    public void removerTransacao(Transacao transacao) {
+        transacoes.remove(transacao);
+        if (guardarEmFicheiro) {
+            guardarNoFicheiro();
+        }
     }
 
     public List<Transacao> getTransacoes() {
@@ -50,9 +66,5 @@ public class GestorTransacoes {
         }
     }
 
-    // Luis
-    public void removerTransacao(Transacao transacao) {
-        transacoes.remove(transacao);
-        guardarNoFicheiro();
-    }
+
 }

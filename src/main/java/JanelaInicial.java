@@ -7,11 +7,13 @@ public class JanelaInicial extends JFrame {
     JPanel container;
 
     private JPanel janelaInicial;
-    private JButton iniciarSessaoButton;
-    private JButton criarContaButton;
+    private JButton entrarButton;
 
     private GestorTransacoes gestorTransacoes;
     private JanelaCronologia janelaCronologia;
+    private JanelaAdicionarItem janelaAdicionarItem;
+    private JanelaVisaoGeral janelaVisaoGeral;
+
 
 
     public JanelaInicial() {
@@ -22,22 +24,21 @@ public class JanelaInicial extends JFrame {
         gestorTransacoes = new GestorTransacoes();
         gestorTransacoes.lerOFicheiro();
         janelaCronologia = new JanelaCronologia(this);
+        janelaAdicionarItem = new JanelaAdicionarItem(this);
+        janelaVisaoGeral = new JanelaVisaoGeral(this);
 
         cardLayout = new CardLayout();
         container = new JPanel(cardLayout);
 
         container.add(janelaInicial, "inicial");
-        container.add(new JanelaLogin(this), "login");
-        container.add(new JanelaCriarConta(this), "criarConta");
         container.add(janelaCronologia, "cronologia");
-        container.add(new JanelaVisaoGeral(this), "visaoGeral");
-        container.add(new JanelaAdicionarItem(this), "adicionarItem");
+        container.add(janelaVisaoGeral, "visaoGeral");
+        container.add(janelaAdicionarItem, "adicionarItem");
 
         setContentPane(container);
 
 
-        iniciarSessaoButton.addActionListener(this::btnJanelaLogin);
-        criarContaButton.addActionListener(this::btnJanelaCriarConta);
+        entrarButton.addActionListener(this::btnEntrar);
 
     }
 
@@ -45,12 +46,8 @@ public class JanelaInicial extends JFrame {
         cardLayout.show(container, nome);
     }
 
-    private void btnJanelaLogin(ActionEvent e) {
-        mostrarEcra("login");
-    }
-
-    private void btnJanelaCriarConta(ActionEvent e) {
-        mostrarEcra("criarConta");
+    private void btnEntrar(ActionEvent e) {
+        mostrarEcra("cronologia");
     }
 
     public GestorTransacoes getGestorTransacoes() {
@@ -60,5 +57,14 @@ public class JanelaInicial extends JFrame {
     public void abrirCronologia() {
         janelaCronologia.atualizarCronologia();
         mostrarEcra("cronologia");
+    }
+
+    public JanelaAdicionarItem getJanelaAdicionarItem() {
+        return janelaAdicionarItem;
+    }
+
+    public void abrirVisaoGeral() {
+        janelaVisaoGeral.atualizarVisaoGeral();
+        mostrarEcra("visaoGeral");
     }
 }
